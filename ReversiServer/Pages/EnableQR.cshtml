@@ -1,0 +1,91 @@
+﻿@page "{username?}"
+@model ReversiServer.Pages.EnableQRModel
+@{
+    ViewData["Title"] = "EnableQR";
+}
+
+<h1>EnableQR</h1>
+<h3 class="text-danger">@TempData["ErrorMsg"]</h3>
+
+<main>
+    <section>
+        <h3>Scan this QR-code with FreeOTP app</h3>
+        <h4><a href="https://freeotp.github.io/">More information about the app</a></h4>
+        <a id="urilink">
+            <div id="qrcode">
+            </div>
+        </a>
+    </section>
+    <section>
+        <div class="mt-5">
+            <p>Please confirm 2FA by entering a code (NOTE: IF you do not follow this step, 2FA will NOT be activated)</p>
+            <form method="post">
+                <label id="2facode">Code: </label>
+                <input id="2facode" type="text" asp-for="Code" />
+                <input type="submit" value="Submit" class="btn btn-primary" />
+            </form>
+        </div>
+    </section>
+</main>
+
+@section Scripts
+{
+    <script type="text/javascript" src="~/js/base32.js"></script>
+    <script type="text/javascript" src="~/js/qrcode.js"></script>
+    <script>
+        $(function () {
+            function makeURI() {
+                var algorithm = '@Model.FreeOtp.Algorithm';
+                var account = '@Model.FreeOtp.Account';
+                var issuer = '@Model.FreeOtp.Issuer';
+                var secret = '@Model.FreeOtp.Secret';
+                var digits = '@Model.FreeOtp.Digits';
+                var period = '@Model.FreeOtp.Period';
+                var type = '@Model.FreeOtp.Type';
+                var uri = "otpauth://" + type + "/";
+
+                if (issuer.length > 0)
+                    uri += encodeURIComponent(issuer) + ":";
+
+                uri += encodeURIComponent(account);
+                uri += "?secret=" + secret;
+                uri += "&algorithm=" + algorithm;
+                uri += "&digits=" + digits;
+                uri += "&period=" + period;
+
+                return uri;
+            }
+
+            var qrcode = new QRCode(document.getElementById("qrcode"),
+                {
+                    correctLevel: QRCode.CorrectLevel.H,
+                    text: window.location.href,
+                    colorLight: "#ffffff",
+                    colorDark: "#000000"
+                });
+
+
+            var uri = makeURI();
+                qrcode.clear();
+                qrcode.makeCode(uri);
+                document.getElementById("urilink").href = uri;
+        })
+    </script>
+
+}
+@if (Model.ActivationSucces)
+{
+    <h2 class="text-success ">Activation succesfull! redirect in: <span id="countDown">3</span></h2>
+
+    <script>
+        var interval = setInterval(function (parameters) {
+                document.getElementById("countDown").innerText =
+                    parseInt(document.getElementById("countDown").innerText) - 1;
+                if (parseInt(document.getElementById("countDown").innerText) === 0) {
+                    clearInterval(interval);
+                    window.location.pathname = "/Welcome";
+                }
+            },
+            1000);
+    </script>
+}

@@ -1,0 +1,230 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using reCAPTCHA.AspNetCore
+@inject IOptions<RecaptchaSettings> RecaptchaSettings
+@model ReversiServer.Pages.ResetModel
+@{
+    ViewData["Title"] = "Reset";
+}
+
+@section Captcha{
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeQSrkUAAAAAJOdVA2bL_k_HFGLSDI0fGpLF2yC"></script>
+}
+
+<h1>Reset</h1>
+<form method="post" id="resetForm" asp-page-handler="">
+    <div class="form-group">
+        @Html.Recaptcha(RecaptchaSettings.Value, "light", "reset")
+    </div>
+    <div class="form-group row">
+        <div class="col-6">
+            <div class="form-group">
+                <label for="emailOrUsername">Email address or username</label>
+                <input type="text" class="form-control" id="emailOrUsername" asp-for="EmailOrUsername" value="@Model.EmailOrUsername" placeholder="Enter email/username" readonly="@Model.DisableEmail">
+                <small id="emailOrUsernaneHelp" class="form-text text-muted">In order to recover your account we need your email address or your username.</small>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.NotActivated)
+    {
+        <p>
+            Your account seems not to be activated. Please activate your account before requesting a password reset.<br />
+            Want a new activation key? <a asp-page="Activate" asp-route-newCode="yes">CLICK HERE</a><br />
+            If not <a asp-page="Activate">CLICK HERE</a>
+        </p>
+    }
+    @if (!Model.DisableEmail)
+    {
+        <div class="form-group row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    }
+</form>
+@if (Model.DisableEmail)
+{
+    <form method="post" id="newCode" asp-page-handler="">
+        <div class="form-group row">
+            <div class="col-6">
+                <input type="hidden" asp-for="EmailOrUsername" value="@Model.EmailOrUsername">
+                <input type="hidden" asp-for="DisableEmail" value="true" />
+                <input type="hidden" asp-for="ReCaptcha2"/>
+                <button type="submit" class="btn btn-sm btn-dark">Request new resetcode</button>
+            </div>
+        </div>
+    </form>
+    <form method="post" id="finalReset" asp-page-handler="Final">
+        <div class="form-group row align-items-center">
+        <div class="col-2">
+            <div class="form-group">
+                <label for="code">Reset code</label>
+                <input type="text" id="code" maxlength="6" class="form-control" asp-for="ResetCode" value="@Model.ResetCode" min="6">
+            </div>
+        </div>
+        <div class="col-2">
+            <span id="codeVal"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-6">
+            <div class="form-group">
+                <label for="password">New password</label>
+                <input type="password" class="form-control pwcheck" id="FirstPw" placeholder="Enter new password" asp-for="FirstPw" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-6">
+            <div class="form-group">
+                <label for="SecondPw">Retype password</label>
+                <input type="password" class="form-control" id="SecondPw" asp-for="SecondPw" placeholder="Retype password" readonly>
+            </div>
+        </div>
+    </div>
+    <div>
+        <input type="hidden" asp-for="ReCaptcha3" />
+        <input type="hidden" id="securityHash" value="@Model.SecurityHash" />
+    </div>
+    <div class="form-group row">
+        <div class="col-12">
+            <span class="text-danger" asp-validation-for="FirstPw"></span>
+            <p>
+                Password must meet the following:
+                <ul>
+                    <li id="letter" class="invalid">At least <strong>one lower case</strong></li>
+                    <li id="capital" class="invalid">At least <strong>one upper case</strong></li>
+                    <li id="number" class="invalid">At least <strong>one number</strong></li>
+                    <li id="special" class="invalid">At least <strong>one special character</strong></li>
+                    <li id="length" class="invalid">Be at least <strong>8 characters</strong></li>
+                </ul>
+            </p>
+        </div>
+    </div>
+<div class="form-group row">
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary" asp-page-handler="Final">Submit</button>
+    </div>
+</div>
+    </form>
+}
+<span class="text-danger" asp-validation-for="ReCaptcha"></span>
+<h4 class="text-danger">@TempData["Msg"]</h4>
+@if (Model.DisableEmail)
+{
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
+    <script>
+
+        $(function () {
+            var pw = document.getElementById("FirstPw");
+            var liLetter = document.getElementById("letter");
+            var liCaptial = document.getElementById("capital");
+            var liNumber = document.getElementById("number");
+            var liSpecial = document.getElementById("special");
+            var liLength = document.getElementById("length");
+
+            pw.addEventListener("input",
+                () => {
+                    pw.value.match(/[a-z]/) ? liLetter.style.color = "green" : liLetter.style.color = "red";
+                    pw.value.match(/[A-Z]/) ? liCaptial.style.color = "green" : liCaptial.style.color = "red";
+                    pw.value.match(/\d/) ? liNumber.style.color = "green" : liNumber.style.color = "red";
+                    pw.value.match(/[!@@#$%^&*()_+,.;']/)
+                        ? liSpecial.style.color = "green"
+                        : liSpecial.style.color = "red";
+                    pw.value.length > 7 ? liLength.style.color = "green" : liLength.style.color = "red";
+                });
+
+            $.validator.addMethod("pwcheck",
+                function (value, element) {
+                    return this.optional(element) ||
+                        /[a-z]/.test(value) &&
+                        /[A-Z]/.test(value) &&
+                        /[\d]/.test(value) &&
+                        /[!@@#$%^&*()_+,.;']/.test(value) &&
+                        value.length > 7;
+                },
+                "");
+
+            document.getElementById("code").addEventListener("input",
+                function () {
+                    if ($(this).val().length === 6) {
+                        validateCode($(this).val())
+                            .then(function (parameters) {
+                                document.getElementById("codeVal").innerText = '👍';
+                                document.getElementById("code").readOnly = true;
+                                document.getElementById("FirstPw").readOnly = false;
+                                document.getElementById("SecondPw").readOnly = false;
+                            }).catch(function (parameters) {
+                                document.getElementById("codeVal").innerText = '👎';
+                                document.getElementById("code").readOnly = false;
+                                document.getElementById("FirstPw").readOnly = true;
+                                document.getElementById("SecondPw").readOnly = true;
+                            });
+                    }
+                });
+
+            $('#resetForm').validate({
+                rules: {
+                    FirstPw: "required",
+                    SecondPw: {
+                        equalTo: "#FirstPw"
+                    }
+                }
+            });
+//            url: 'http://localhost:5000/api/reset/?account=' +
+            //            url: 'https://drysolidkiss.nl/api/reset/?account=' +
+            function validateCode(code, hash) {
+                return new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: 'https://drysolidkiss.nl/api/reset/?account=' +
+                            document.getElementById("emailOrUsername").value +
+                            '&code=' +
+                            code +
+                            '&hash=' +
+                            document.getElementById("securityHash").value
+                        ,
+                        method: 'GET',
+                        contentType: 'text/plain',
+                        success: function () {
+                            resolve();
+                        },
+                        error: function () {
+                            reject();
+                        }
+                    });
+                });
+            }
+
+            document.getElementById("newCode").addEventListener("submit",
+                function(parameters) {
+                    document.getElementById("ReCaptcha2").value = document.getElementById("g-recaptcha-response").value;
+                });
+
+            document.getElementById("finalReset").addEventListener("submit",
+                function(parameters) {
+                    document.getElementById("ReCaptcha3").value = document.getElementById("g-recaptcha-response").value;
+                });
+        });
+
+    </script>
+}
+@if (Model.ResetSuccesfull)
+{
+    <h3 class="text-success ">Your password has succesfully been reset.</h3>
+    <h4>We are sending you back in: <span id="countDown">3</span></h4>
+
+    <script>
+        var interval = setInterval(function (parameters) {
+            document.getElementById("countDown").innerText =
+                parseInt(document.getElementById("countDown").innerText) - 1;
+            if (parseInt(document.getElementById("countDown").innerText) === 0) {
+                clearInterval(interval);
+                window.location.pathname = "/Welcome";
+            }
+        },
+            1000);
+    </script>
+}

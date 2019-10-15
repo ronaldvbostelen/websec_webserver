@@ -1,0 +1,11 @@
+﻿@page
+@model ReversiServer.Pages.ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h1>Error</h1>
+
+<p class="text-danger">@TempData["ErrorMsg"]</p>
+
+<h4><a asp-page="Index">Return to homepage</a></h4>

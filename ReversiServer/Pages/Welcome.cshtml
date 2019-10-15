@@ -1,0 +1,183 @@
+﻿@page
+@model ReversiServer.Pages.WelcomeModel
+@using Microsoft.Extensions.Options
+@using reCAPTCHA.AspNetCore
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@inject IOptions<RecaptchaSettings> RecaptchaSettings
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+@section Captcha{
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeQSrkUAAAAAJOdVA2bL_k_HFGLSDI0fGpLF2yC"></script>
+}
+
+
+
+<div class="container mt-5">
+    <a class="btn btn-outline-dark" asp-page="Logout">Logout!</a>
+    <h6 class="float-right">Username: <b>@Model.User.Username</b></h6>
+    <h1>Greetings @Model.User.ScreenName </h1>
+
+    <div class="border border-dark p-3">
+        <h4>Change account details</h4>
+        <form method="post" id="profileForm" asp-page-handler="">
+            <div class="row form-group">
+                <div class="col-6">
+                    <label for="screenName">New Screen name</label>
+                    <input type="text" class="form-control" id="screenName" value="@Model.User.ScreenName" asp-for="UpdatedUser.ScreenName">
+                    <span class="text-danger" asp-validation-for="User.ScreenName"></span>
+                </div>
+                <div class="col-6">
+                    <label for="currentScreenName">Current Screen name</label>
+                    <input type="text" class="form-control" id="currentScreenName" value="@Model.User.ScreenName" disabled>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-6">
+                    <label for="email">New Email Address</label>
+                    <input type="text" class="form-control" id="email" value="@Model.User.Email" asp-for="UpdatedUser.Email">
+                    <span class="text-danger" asp-validation-for="User.Email"></span>
+                </div>
+                <div class="col-6">
+                    <label for="currentEmailAddress">Current Email Address</label>
+                    <input type="text" class="form-control" id="currentEmailAddress" value="@Model.User.Email" disabled>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-6">
+                    <label for="getQr"><b>2FA </b></label>
+                    @if (Model.User.TwoFa)
+                    {
+                        <a asp-page="DisableQR">Disable 2FA</a>
+                    }
+                    else
+                    {
+                        <a id="getQr" asp-page="EnableQR" asp-route-username="@Model.User.Username">Enable 2FA with FreeOTP (QR)</a>
+                    }
+
+                </div>
+            </div>
+            @Html.Recaptcha(RecaptchaSettings.Value, "light", "update")
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <p class="text-success">@ViewBag.SuccesMsg</p>
+            <p class="text-danger">@ViewBag.ErrorMsg</p>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="border border-dark p-3 my-2">
+                <h4>Change password</h4>
+                <form method="post" asp-page-handler="Password" id="resetForm">
+                    <div class="row form-group px-3">
+                        <label for="password">Current Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Enter current password" asp-for="OldPw">
+                        <span class="text-danger" asp-validation-for="OldPw"></span>
+                    </div>
+                    <div class="row form-group px-3">
+                        <label for="FirstPw">New password</label>
+                        <input type="password" class="form-control" id="FirstPw" placeholder="Enter new password" asp-for="FirstPw">
+                        <span class="text-danger" asp-validation-for="FirstPw"></span>
+                    </div>
+                    <div class="row form-group px-3">
+                        <label for="SecondPw">Reenter password</label>
+                        <input type="password" class="form-control" id="SecondPw" placeholder="Re-enter password" asp-for="SecondPw">
+                        <span class="text-danger" asp-validation-for="SecondPw"></span>
+                    </div>
+                    <input type="hidden" asp-for="ReCaptchaDeux" />
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <p class="text-success">@ViewBag.SuccesMsgPw</p>
+                    <p class="text-danger">@ViewBag.ErrorMsgPw</p>
+                </form>
+            </div>
+        </div>
+        <div class="col-6 d-flex">
+            <div class="form-group row align-self-center">
+                <div class="col-12">
+                    <p>
+                        Password must meet the following:
+                        <ul>
+                            <li id="letter" class="invalid">At least <strong>one lower case</strong></li>
+                            <li id="capital" class="invalid">At least <strong>one upper case</strong></li>
+                            <li id="number" class="invalid">At least <strong>one number</strong></li>
+                            <li id="special" class="invalid">At least <strong>one special character</strong></li>
+                            <li id="length" class="invalid">Be at least <strong>8 characters</strong></li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="text-danger" asp-validation-for="ReCaptcha"></span>
+    <h3>Play a game</h3>
+    <a asp-page="Reversi" class="btn btn-primary">Play Reversi!</a>
+</div>
+
+@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin") || User.IsInRole("Helpdesk"))
+{
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col">
+                <a class="btn btn-info" asp-page="Admin">Go to admin page</a>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<script>
+    $(function () {
+        grecaptcha.ready(function () {
+            grecaptcha.execute('6LeQSrkUAAAAAJOdVA2bL_k_HFGLSDI0fGpLF2yC', { action: 'update' });
+        });
+
+        var pw = document.getElementById("FirstPw");
+        var liLetter = document.getElementById("letter");
+        var liCaptial = document.getElementById("capital");
+        var liNumber = document.getElementById("number");
+        var liSpecial = document.getElementById("special");
+        var liLength = document.getElementById("length");
+
+        pw.addEventListener("input",
+            () => {
+                pw.value.match(/[a-z]/) ? liLetter.style.color = "green" : liLetter.style.color = "red";
+                pw.value.match(/[A-Z]/) ? liCaptial.style.color = "green" : liCaptial.style.color = "red";
+                pw.value.match(/\d/) ? liNumber.style.color = "green" : liNumber.style.color = "red";
+                pw.value.match(/[!@@#$%^&*()_+,.;']/)
+                    ? liSpecial.style.color = "green"
+                    : liSpecial.style.color = "red";
+                pw.value.length > 7 ? liLength.style.color = "green" : liLength.style.color = "red";
+            });
+
+        $.validator.addMethod("pwcheck",
+            function (value, element) {
+                return this.optional(element) ||
+                    /[a-z]/.test(value) &&
+                    /[A-Z]/.test(value) &&
+                    /[\d]/.test(value) &&
+                    /[!@@#$%^&*()_+,.;']/.test(value) &&
+                    value.length > 7;
+            },
+            "");
+
+        $('#resetForm').validate({
+            rules: {
+                "FirstPw": "required",
+                "SecondPw": {
+                    equalTo: "#FirstPw"
+                }
+            }
+        });
+
+        document.getElementById("resetForm").addEventListener("submit",
+            function (parameters) {
+                document.getElementById("ReCaptchaDeux").value = document.getElementById('g-recaptcha-response').value;
+            });
+    });
+
+</script>

@@ -1,0 +1,114 @@
+﻿@page
+@using Microsoft.Extensions.Options
+@using reCAPTCHA.AspNetCore
+@inject IOptions<RecaptchaSettings> RecaptchaSettings
+@model ReversiServer.Pages.RegistrationModel
+@{
+    ViewData["Title"] = "Registration";
+}
+
+@section Captcha{
+    @* <script src="https://www.google.com/recaptcha/api.js" async defer></script> *@
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeQSrkUAAAAAJOdVA2bL_k_HFGLSDI0fGpLF2yC"></script>
+
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-md-8 offset-md-2">
+            <h1>Registrationform</h1>
+            <form method="post" id="regForm">
+                <div class="form-group">
+                    <label for="userName">Username</label>
+                    <input type="text" class="form-control" id="userName" placeholder="Username" asp-for="User.Name">
+                    <span class="text-danger" asp-validation-for="User.Name"></span>
+                </div>
+                <div class="form-group">
+                    <label for="screenName">Screen name</label>
+                    <input type="text" class="form-control" id="screenName" aria-describedby="ScreenNameHelp" placeholder="Enter screen name" asp-for="User.ScreenName">
+                    <small id="screenNameHelp" class="form-text text-muted">If you prefer different screenname</small>
+                    <span class="text-danger" asp-validation-for="User.ScreenName"></span>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter email" asp-for="User.Email">
+                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                    <span class="text-danger" asp-validation-for="User.Email"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control pwcheck" id="password" placeholder="Password" asp-for="User.Password">
+                    <span class="text-danger" asp-validation-for="User.Password"></span>
+                    <p>
+                        Password must meet the following:
+                        <ul>
+                            <li id="letter" class="invalid">At least <strong>one lower case</strong></li>
+                            <li id="capital" class="invalid">At least <strong>one upper case</strong></li>
+                            <li id="number" class="invalid">At least <strong>one number</strong></li>
+                            <li id="special" class="invalid">At least <strong>one special character</strong></li>
+                            <li id="length" class="invalid">Be at least <strong>8 characters</strong></li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="form-group">
+                    @* <div class="g-recaptcha" data-sitekey="6LcGT7kUAAAAAEHyMUSdHpcryyEq1scLpVUnqbE9"></div> *@
+                    @Html.Recaptcha(RecaptchaSettings.Value, "light", "registration")
+                    <span class="text-danger" asp-validation-for="ReCaptcha"></span>
+                </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(function () {
+
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6LeQSrkUAAAAAJOdVA2bL_k_HFGLSDI0fGpLF2yC', { action: 'registration' });
+            });
+
+
+            var usernameDom = document.getElementById("userName");
+
+            usernameDom.addEventListener("input",
+                (e) => {
+                    document.getElementById("screenName").value = usernameDom.value;
+                });
+
+            var pwDom = document.getElementById("password");
+            var liLetter = document.getElementById("letter");
+            var liCaptial = document.getElementById("capital");
+            var liNumber = document.getElementById("number");
+            var liSpecial = document.getElementById("special");
+            var liLength = document.getElementById("length");
+
+            pwDom.addEventListener("input",
+                () => {
+                    pwDom.value.match(/[a-z]/) ? liLetter.style.color = "green" : liLetter.style.color = "red";
+                    pwDom.value.match(/[A-Z]/) ? liCaptial.style.color = "green" : liCaptial.style.color = "red";
+                    pwDom.value.match(/\d/) ? liNumber.style.color = "green" : liNumber.style.color = "red";
+                    pwDom.value.match(/[!@@#$%^&*()_+,.;']/)
+                        ? liSpecial.style.color = "green"
+                        : liSpecial.style.color = "red";
+                    pwDom.value.length > 7 ? liLength.style.color = "green" : liLength.style.color = "red";
+                });
+
+
+            $.validator.addMethod("pwcheck",
+                function (value, element) {
+                    return this.optional(element) ||
+                        /[a-z]/.test(value) &&
+                        /[A-Z]/.test(value) &&
+                        /[\d]/.test(value) &&
+                        /[!@@#$%^&*()_+,.;']/.test(value) &&
+                        value.length > 7;
+                },
+                "");
+
+        });
+    </script>
+}

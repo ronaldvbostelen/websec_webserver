@@ -1,0 +1,36 @@
+﻿@page
+@model ReversiServer.Pages.DisableQRModel
+@{
+    ViewData["Title"] = "DisableQR";
+}
+
+<h1>DisableQR</h1>
+
+<h3>Are you sure you want to disable 2FA?</h3>
+<form method="post">
+    <div class="form-group row">
+        <div class="col">
+            <input type="submit" value="Yes" class="btn btn-success w-25" />
+            <a asp-page="Welcome" class="btn btn-danger w-25">No (return)</a>
+        </div>
+    </div>
+</form>
+<h4 class="text-danger">@TempData["ErrorMsg"]</h4>
+
+
+@if (Model.DisableSucces)
+{
+    <h2 class="text-success ">2FA disabled! Please login again. redirect in: <span id="countDown">3</span></h2>
+
+    <script>
+        var interval = setInterval(function (parameters) {
+                document.getElementById("countDown").innerText =
+                    parseInt(document.getElementById("countDown").innerText) - 1;
+                if (parseInt(document.getElementById("countDown").innerText) === 0) {
+                    clearInterval(interval);
+                    window.location.pathname = "/";
+                }
+            },
+            1000);
+    </script>
+}

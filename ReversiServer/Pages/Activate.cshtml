@@ -1,0 +1,75 @@
+﻿@page
+@model ReversiServer.Pages.ActivateModel
+@{
+    ViewData["Title"] = "Activate";
+}
+
+<h1>Activate</h1>
+
+<form method="post">
+    <div class="form-group row">
+        <div class="col-4">
+            <div class="form-group">
+                <label for="code">Activation code</label>
+                <input type="text" id="code" min="6" maxlength="6" class="form-control" asp-for="@Model.ActivationCode">
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+</form>
+
+<p class="text-danger">@TempData["ErrorMsg"]</p>
+
+<p>
+    <small>You did not receive a email? Check your spambox or request a new code.</small>
+</p>
+
+<p>
+    You want to request a new activationcode? <a asp-page="Activate" asp-route-newCode="yes">CLICK HERE</a><br />
+</p>
+
+@if (Model.ActivationSucces)
+{
+    <h2 class="text-success ">Activation succesfull! redirect in: <span id="countDown">3</span></h2>
+
+    <script>
+        var interval = setInterval(function (parameters) {
+            document.getElementById("countDown").innerText =
+                parseInt(document.getElementById("countDown").innerText) - 1;
+            if (parseInt(document.getElementById("countDown").innerText) === 0) {
+                clearInterval(interval);
+                window.location.pathname = "/Welcome";
+            }
+        },
+            1000);
+    </script>
+}
+
+@if (Model.Login)
+{
+    if (Model.ActivationSucces)
+    {
+        <h2 class="text-success ">Activation succesfull! redirect in: <span id="countDown">3</span></h2>
+    }
+    else
+    {
+        <h2 class="text-success ">Unable to validate credentials. Login first. Redirect in: <span id="countDown">3</span></h2>
+    }
+
+
+    <script>
+        var interval = setInterval(function (parameters) {
+            document.getElementById("countDown").innerText =
+                parseInt(document.getElementById("countDown").innerText) - 1;
+            if (parseInt(document.getElementById("countDown").innerText) === 0) {
+                clearInterval(interval);
+                window.location.pathname = "/";
+            }
+        },
+            1000);
+    </script>
+}

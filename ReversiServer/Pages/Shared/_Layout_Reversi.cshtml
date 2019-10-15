@@ -1,0 +1,27 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] - Reversi</title>
+    <meta name="viewport" content="width=device-width, height=device-height initial-scale=1">
+    <link rel="stylesheet" href="~/dist/css/main.css">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+
+@RenderBody()
+<script src="~/dist/js/vendor/handlebars.runtime-v4.1.2.js"></script>
+<script src="~/dist/js/vendor/jquery-3.3.1.min.js"></script>
+<script src="~/dist/js/vendor/jquery-ui.min.js"></script>
+<script src="~/dist/js/vendor/Chart.min.js"></script>
+<script src="~/dist/js/main-min.js"></script>
+<script src="~/dist/js/templates.js"></script>
+<script>
+    $(function () {
+        SPA.init();
+    })
+</script>    
+</body>
+</html>

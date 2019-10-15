@@ -1,0 +1,384 @@
+﻿@page
+@using Client_tech_resversi_api.Models.Non_DB_models
+@model ReversiServer.Pages.AdminModel
+@{
+    ViewData["Title"] = "Admin";
+}
+
+@{
+    var selectedUser = @Model.SelectedUser ?? new UserOverview();
+}
+
+<div class="m-3">
+    <div class="row">
+        <a class="btn btn-outline-dark" asp-page="Logout">Logout!</a>
+        <a class="btn btn-outline-info ml-2" asp-page="Welcome">Return</a>
+    </div>
+    <h1 class="d-inline-block">Admin Page</h1>
+    <div class="float-right">
+
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <h2>You are: [SUPER ADMIN]</h2>
+        }
+        else if (User.IsInRole("Admin"))
+        {
+            <h2>You are: [ADMIN]</h2>
+        }
+        else
+        {
+            <h2>You are: [HELPDESK]</h2>
+        }
+    </div>
+
+</div>
+
+<div class="container">
+<div class="row">
+    <div class="col-4">
+        <h5>Helpdesk users</h5>
+    </div>
+    <div class="col-4">
+        <h5>Admins</h5>
+    </div>
+    <div class="col-4">
+        <h5>Super admins</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-4">
+        <table class="table table-bordered" id="helpdeskUsers">
+            <thead>
+            <tr>
+                <th scope="col">UserId</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Select</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var helpdeskUser in Model.HelpdeskUsers)
+            {
+                <tr>
+                    <th scope="row">@helpdeskUser.UserId</th>
+                    <td>@helpdeskUser.UserName</td>
+                    <td>
+                        <form method="post" asp-page-handler="">
+                            <input type="hidden" asp-for="SelectedUser.UserId" value="@helpdeskUser.UserId"/>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-4">
+        <table class="table table-bordered" id="admins">
+            <thead>
+            <tr>
+                <th scope="col">UserId</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Select</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var admin in Model.Admins)
+            {
+                <tr>
+                    <th scope="row">@admin.UserId</th>
+                    <td>@admin.UserName</td>
+                    <td>
+                        <form method="post" asp-page-handler="">
+                            <input type="hidden" asp-for="SelectedUser.UserId" value="@admin.UserId"/>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-4">
+        <table class="table table-bordered" id="superAdmins">
+            <thead>
+            <tr>
+                <th scope="col">UserId</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Select</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var superAdmin in Model.SuperAdmins)
+            {
+                <tr>
+                    <th scope="row">@superAdmin.UserId</th>
+                    <td>@superAdmin.UserName</td>
+                    <td>
+                        <form method="post" asp-page-handler="">
+                            <input type="hidden" asp-for="SelectedUser.UserId" value="@superAdmin.UserId"/>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-6">
+        <h5>Non verified users (not activated)</h5>
+    </div>
+    <div class="col-6">
+        <h5>verified users (activated)</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6">
+        <table class="table table-bordered" id="nonVerifiedUsers">
+            <thead>
+            <tr>
+                <th scope="col">UserId</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Select</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var nonVerifiedUser in Model.NonVerifiedUsers)
+            {
+                <tr>
+                    <td>@nonVerifiedUser.UserId</td>
+                    <td>@nonVerifiedUser.UserName</td>
+                    <td>
+                        <form method="post" asp-page-handler="">
+                            <input type="hidden" asp-for="SelectedUser.UserId" value="@nonVerifiedUser.UserId"/>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-6">
+        <table class="table table-bordered" id="verifiedUsers">
+            <thead>
+            <tr>
+                <th scope="col">UserId</th>
+                <th scope="col">UserName</th>
+                <th scope="col">Select</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var verifiedUser in Model.VerifiedUsers)
+            {
+                <tr>
+                    <td scope="row">@verifiedUser.UserId</td>
+                    <td>@verifiedUser.UserName</td>
+                    <td>
+                        <form method="post" asp-page-handler="">
+                            <input type="hidden" asp-for="SelectedUser.UserId" value="@verifiedUser.UserId"/>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <h3 class="text-danger">@TempData["ErrorMsg"]</h3>
+        <h3 class="text-success">@TempData["SuccessMsg"]</h3>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6">
+        <table class="table table-bordered" id="selectedUser">
+            <thead>
+            <tr>
+                <th>UserId</th>
+                <td id="userId">@selectedUser.UserId</td>
+            </tr>
+            <tr>
+                <th>UserName</th>
+                <td id="userName">@selectedUser.UserName</td>
+            </tr>
+            <tr>
+                <th>Screenname</th>
+                <td id="screenName">@selectedUser.ScreenName</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td id="email">@selectedUser.Email</td>
+            </tr>
+            <tr>
+                <th>Verified</th>
+                <td id="verfied">@(selectedUser.UserAccount.Verified ? "yes" : "no")</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td id="status">@selectedUser.UserAccount.Status</td>
+            </tr>
+            <tr>
+                <th>Last time logged in</th>
+                <td id="timeLoggedIn">@selectedUser.UserAccount.LastTimeLoggedIn</td>
+            </tr>
+            <tr>
+                <th>Last time logged in from</th>
+                <td id="loggedInFrom">@selectedUser.UserAccount.LastTimeLoggedInFrom</td>
+            </tr>
+            <tr>
+                <th>Login attempts</th>
+                <td id="loginAttempts">@selectedUser.UserAccount.LoginAttempts</td>
+            </tr>
+            <tr>
+                <th>Recover attempts</th>
+                <td id="recoverAttempts">@selectedUser.UserAccount.RecoverAttempts</td>
+            </tr>
+            <tr>
+                <th>Roles</th>
+                <td>
+                    @foreach (var role in selectedUser.UserRoles)
+                    {
+                        @role.Role
+                        <br/>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <th>Claims</th>
+                <td>
+                    @foreach (var claim in selectedUser.UserClaims)
+                    {
+                        @claim.Claim
+                        @Html.Raw("  ::  ")
+                        @claim.Value
+                        @Html.Raw("<br/>")
+                    }
+                </td>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="col-6">
+        <div class="row border">
+            <div class="col-12">
+                <p>Change emailaddress for @selectedUser.UserName</p>
+            </div>
+            <div class="col-12">
+                <form method="post" asp-page-handler="ChangeEmail">
+                    <div class="form-group">
+                        <label for="newEmail">New email</label>
+                        <input id="newEmail" type="email" asp-for="NewEmail"/>
+                        <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                        <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                        <span class="text-danger" asp-validation-for="NewEmail"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row border">
+            <div class="col-12">
+                <p>Reset password for @selectedUser.UserName</p>
+            </div>
+            <div class="col-12">
+                <form method="post" asp-page-handler="ChangePassword">
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input id="newPassword" type="text" asp-for="NewPassword"/>
+                        <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                        <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                        <span class="text-danger" asp-validation-for="NewPassword"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
+            <div class="row border">
+                <div class="col-12">
+                    <form method="post" asp-page-handler="Ban">
+                        <div class="form-group">
+                            <label for="ban">Ban @selectedUser.UserName</label>
+                            <input id="ban" type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                            <input type="submit" value="submit ban" class="btn btn-danger" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row border">
+                <div class="col-12">
+                    <form method="post" asp-page-handler="UnBan">
+                        <div class="form-group">
+                            <label for="unban">Unban @selectedUser.UserName</label>
+                            <input id="unban" type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                            <input type="submit" value="submit unban" class="btn btn-success" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <div class="row border">
+                <form method="post" asp-page-handler="SetRole">
+                    <label>Set Role</label>
+                    <select asp-for="SelectedRole" asp-items="Model.RolesList">
+                        <option value="">Select a role</option>
+                    </select>
+                    <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                    <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                </form>
+            </div>
+            <div class="row border">
+                <form method="post" asp-page-handler="RemoveRole">
+                    <label>Remove Role</label>
+                    <select asp-for="SelectedUserRole" asp-items="Model.SelectedUserRolesList">
+                        <option value="">Select a role</option>
+                    </select>
+                    <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                    <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                </form>
+            </div>
+            <div class="row border">
+                <div class="col-12">
+                    <form method="post" asp-page-handler="SetClaim">
+                        <div class="form-group">
+                            <p>Set userclaim</p>
+                            <label for="claim">Claim</label>
+                            <input id="claim" type="text" asp-for="NewClaim.Claim"/><br/>
+                            <label for="value">Value</label>
+                            <input id="value" type="text" asp-for="NewClaim.Value"/><br/>
+                            <label for="issuer">Issuer</label>
+                            <input id="issuer" type="text" asp-for="NewClaim.Issuer"/>
+                            <input type="hidden" asp-for="NewClaim.UserId" value="@selectedUser.UserId"/>
+                            <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                            <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row border">
+                <div class="col-12">
+                    <form method="post" asp-page-handler="RemoveClaim">
+                        <label>Remove Claim</label>
+                        <select asp-for="SelectedUserClaim" asp-items="Model.SelectedUserClaimsList">
+                            <option value="">Select a claim</option>
+                        </select>
+                        <input type="hidden" asp-for="@Model.SelectedUser.UserId" value="@selectedUser.UserId"/>
+                        <input type="submit" value="submit" class="btn btn-primary" @(selectedUser.UserId == 0 ? "disabled" : "")/><br/>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
