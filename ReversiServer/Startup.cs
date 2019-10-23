@@ -91,7 +91,12 @@ namespace ReversiServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-
+            app.Use(async (context, x) =>
+            {
+                context.Response.Headers.Add("X-Frame-Options", "DENY");
+                await x();
+            });
+                
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
